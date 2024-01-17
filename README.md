@@ -9,6 +9,15 @@ Currently there are three hardware versions available:
 
 All versions share a ESP32 D1 Mini as Microcontroller and use Waveshare epaper displays. 
 
+## Gallery
+
+<img src="https://i.imgur.com/9NtTPL2.jpg" width="400">
+<img src="https://i.imgur.com/Qhs3QL5.jpg" width="400">
+<img src="https://i.imgur.com/5rEku5x.jpg" width="400">
+<img src="https://i.imgur.com/GKYN9dG.jpg" width="400">
+
+
+
 ## Hardware
 
 ### Controller and Buttons
