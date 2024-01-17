@@ -1,0 +1,70 @@
+font:
+  - file: 'fonts/Silkscreen.ttf'
+    id: font1
+    size: 12
+
+  - file: 'fonts/BebasNeue-Regular.ttf'
+    id: font2
+    size: 96
+
+  - file: 'fonts/OpenSans-Light.ttf'
+    id: font3
+    size: 12
+
+image:
+  - file: mdi:radiator
+    id: img_heat
+    resize: 25x25
+  - file: mdi:window-closed-variant
+    id: img_window
+    resize: 25x25
+  - file: mdi:home-thermometer-outline
+    id: img_home
+    resize: 25x25
+  - file: mdi:sun-thermometer-outline
+    id: img_sunny
+    resize: 25x25    
+
+
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    cs_pin: ${SPI_CS_PIN}
+    dc_pin: ${SPI_DC_PIN}
+    busy_pin: ${SPI_BUSY_PIN}
+    reset_pin: ${SPI_RESET_PIN}
+    model: 2.90inv2
+    update_interval: 60s
+    full_update_every: 120
+    rotation: ${DISPLAY_ROTATION}
+    lambda: |-
+      // icons
+      if (id(heating).state) {it.image(50, 98, id(img_heat));}
+      if (id(window).state) {it.image(100, 98, id(img_window));}
+
+      it.strftime(290, 128, id(font3), TextAlign::BOTTOM_RIGHT, "%d.%m.%Y %H:%M", id(esptime).now());
+
+
+      // Print target temperature
+      it.printf(30, 0, id(font2), TextAlign::TOP_LEFT , "%.1f°", id(target_temperature).state);
+
+
+      // Print inside temperature (from homeassistant sensor)
+      it.image(220, 10, id(img_home));
+      if (id(inside_temperature).has_state()) {
+        it.printf(260, 10, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(inside_temperature).state);
+
+        if (id(inside_humidity).has_state()) {
+          it.printf(260, 25, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(inside_humidity).state);
+        }
+      }
+
+      // Print outside temperature (from homeassistant sensor)
+      it.image(220, 60, id(img_sunny));
+      if (id(outside_temperature).has_state()) {
+        it.printf(260, 60, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(outside_temperature).state);
+        if (id(outside_humidity).has_state()) {
+          it.printf(260, 75, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(outside_humidity).state);
+        }
+      }
+    

@@ -1,0 +1,23 @@
+esphome:
+  name: esp32-thermostat-29
+
+substitutions:
+  LOG_LEVEL: DEBUG
+  DISPLAY_HEADLINE: Wohnzimmer
+  climate_entity_id: climate.heizung_wohnzimmer
+  indoor_temp_entity_id: sensor.temperatur_wohnzimmer_s1_temperature
+  indoor_humidity_entity_id: sensor.temperatur_wohnzimmer_s1_humidity
+  outdoor_temp_entity_id: sensor.temperatur_balkon_s10_temperature
+  outdoor_humidity_entity_id: sensor.temperatur_balkon_s10_humidity
+
+### Remap buttons if necessary
+#  BUTTON_A_PIN: GPIO23 # down
+#  BUTTON_B_PIN: GPIO19 # up
+#  BUTTON_C_PIN: GPIO18 # push
+### Rotate display
+  DISPLAY_ROTATION: "270"
+
+packages:
+  device_base: !include shared/device_base.yaml
+  thermostat: !include shared/base_thermostat.yaml
+  display: !include shared/thermostat_epaper_display_2.9.yaml

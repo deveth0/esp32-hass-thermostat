@@ -1,0 +1,161 @@
+substitutions:
+  DISPLAY_HEADLINE: ""
+  DISPLAY_ROTATION: "90"
+  SPI_CLK_PIN: GPIO32
+  SPI_MOSI_PIN: GPIO22
+  SPI_CS_PIN: GPIO21
+  SPI_DC_PIN: GPIO27
+  SPI_BUSY_PIN: GPIO25
+  SPI_RESET_PIN: GPIO26
+
+  BUTTON_A_PIN: GPIO18 # down
+  BUTTON_B_PIN: GPIO19 # up
+  BUTTON_C_PIN: GPIO23 # push
+
+spi:
+  clk_pin: ${SPI_CLK_PIN}
+  mosi_pin: ${SPI_MOSI_PIN}
+
+# required to fix partial update issues with waveshare
+external_components:
+  - source:
+      type: git
+      url: https://github.com/velaar/esphome
+      ref: test_23_7
+    components: [ waveshare_epaper, display]
+
+
+sensor:
+  - platform: homeassistant
+    id: inside_temperature
+    entity_id: ${indoor_temp_entity_id}
+    internal: true
+    on_value:
+      - component.update: my_display
+
+  - platform: homeassistant
+    id: inside_humidity
+    entity_id: ${indoor_humidity_entity_id}
+    internal: true
+    on_value:
+      - component.update: my_display
+
+  - platform: homeassistant
+    id: outside_temperature
+    entity_id: ${outdoor_temp_entity_id}
+    internal: true
+    on_value:
+      - component.update: my_display
+
+  - platform: homeassistant
+    id: outside_humidity
+    entity_id: ${outdoor_humidity_entity_id}
+    internal: true
+    on_value:
+      - component.update: my_display
+
+  - platform: homeassistant
+    id: target_temperature
+    entity_id: ${climate_entity_id}
+    internal: true
+    attribute: temperature
+    on_value:
+      - component.update: my_display
+      
+
+binary_sensor:
+  
+  # window state
+  - platform: homeassistant
+    id: window
+    entity_id: ${climate_entity_id}
+    attribute: window_open
+    internal: true
+    on_state:
+      - component.update: my_display
+
+  - platform: template
+    id: heating
+    internal: true
+    on_state:
+      - component.update: my_display   
+
+  - platform: gpio
+    pin: 
+      number: ${BUTTON_A_PIN}
+      mode: INPUT_PULLUP
+    name: "Button A"
+    id: btn_a
+    internal: true
+    filters:
+      - invert:      
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      - homeassistant.service:
+          service: climate.set_temperature
+          data:
+            entity_id: ${climate_entity_id}
+          data_template:
+            temperature: !lambda "return id(target_temperature).state - 0.5;"
+
+  - platform: gpio
+    pin: 
+      number: ${BUTTON_B_PIN}
+      mode: INPUT_PULLUP
+    name: "Button B"
+    id: btn_b
+    internal: true
+    filters:
+      - invert:      
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      - homeassistant.service:
+          service: climate.set_temperature
+          data:
+            entity_id: ${climate_entity_id}
+          data_template:
+            temperature: !lambda "return id(target_temperature).state + 0.5;"
+
+  - platform: gpio
+    pin: 
+      number: ${BUTTON_C_PIN}
+      mode: INPUT_PULLUP
+    name: "Button C"
+    id: btn_c
+    internal: true
+    filters:
+      - invert:      
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: heating
+            then: 
+              - homeassistant.service: 
+                  service: climate.turn_off
+                  data:
+                    entity_id: ${climate_entity_id}
+            else:
+              - homeassistant.service: 
+                  service: climate.turn_on
+                  data:
+                    entity_id: ${climate_entity_id}
+
+    
+text_sensor:
+  # Current heating mode
+  - platform: homeassistant
+    id: climate_mode
+    entity_id: ${climate_entity_id}
+    internal: true
+    on_value:
+      then:
+        - binary_sensor.template.publish:
+            id: heating
+            #state: true
+            state: !lambda 'return x == "heat";'
+

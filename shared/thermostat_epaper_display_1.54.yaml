@@ -1,0 +1,70 @@
+font:
+  - file: 'fonts/Silkscreen.ttf'
+    id: font1
+    size: 26
+
+  - file: 'fonts/BebasNeue-Regular.ttf'
+    id: font2
+    size: 96
+
+  - file: 'fonts/OpenSans-Light.ttf'
+    id: font3
+    size: 20
+
+image:
+  - file: mdi:radiator
+    id: img_heat
+    resize: 30x30
+  - file: mdi:window-closed-variant
+    id: img_window
+    resize: 30x30
+  - file: mdi:home-thermometer-outline
+    id: img_home
+    resize: 30x30
+  - file: mdi:sun-thermometer-outline
+    id: img_sunny
+    resize: 30x30    
+    
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    cs_pin: ${SPI_CS_PIN}
+    dc_pin: ${SPI_DC_PIN}
+    busy_pin: ${SPI_BUSY_PIN}
+    reset_pin: ${SPI_RESET_PIN}
+    model: 1.54inv2
+    update_interval: 60s
+    #reset_duration: 2ms
+    full_update_every: 0 # Currently no support for partial updates, so full update is required
+    rotation: ${DISPLAY_ROTATION}
+    lambda: |-
+      // icons
+      if (id(heating).state) {it.image(165, 100, id(img_heat));}
+      if (id(window).state) {it.image(165, 60, id(img_window));}
+
+      // Print room in top center.
+      it.printf(100, 0, id(font1), TextAlign::TOP_CENTER, "${DISPLAY_HEADLINE}");
+
+      // Print target temperature
+      it.printf(170, 30, id(font2), TextAlign::TOP_RIGHT , "%.1f°", id(target_temperature).state);
+
+      // Print inside temperature (from homeassistant sensor)
+      it.image(0, 155, id(img_home));
+      if (id(inside_temperature).has_state()) {
+        it.printf(35, 140, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(inside_temperature).state);
+
+        if (id(inside_humidity).has_state()) {
+          it.printf(35, 170, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(inside_humidity).state);
+        }
+      }
+
+      // Print outside temperature (from homeassistant sensor)
+      it.image(100, 155, id(img_sunny));
+
+      if (id(outside_temperature).has_state()) {
+        it.printf(135, 140, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(outside_temperature).state);
+        if (id(outside_humidity).has_state()) {
+          it.printf(135, 170, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(outside_humidity).state);
+        }
+      }
+    
