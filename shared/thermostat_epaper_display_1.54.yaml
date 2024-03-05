@@ -1,19 +1,18 @@
 font:
-  - file: 'fonts/Silkscreen.ttf'
-    id: font1
-    size: 26
-
   - file: 'fonts/BebasNeue-Regular.ttf'
     id: font2
     size: 96
 
-  - file: 'fonts/OpenSans-Light.ttf'
+  - file: 'fonts/OpenSans-Medium.ttf'
     id: font3
     size: 20
 
 image:
   - file: mdi:radiator
     id: img_heat
+    resize: 30x30
+  - file: mdi:radiator_disabled
+    id: img_radiator_disabled
     resize: 30x30
   - file: mdi:window-closed-variant
     id: img_window
@@ -39,32 +38,68 @@ display:
     rotation: ${DISPLAY_ROTATION}
     lambda: |-
       // icons
-      if (id(heating).state) {it.image(165, 100, id(img_heat));}
-      if (id(window).state) {it.image(165, 60, id(img_window));}
+      if (id(heating).state) {it.image(165, 80, id(img_heat));}
+      if (id(window).state) {it.image(165, 40, id(img_window));}
 
-      // Print room in top center.
-      it.printf(100, 0, id(font1), TextAlign::TOP_CENTER, "${DISPLAY_HEADLINE}");
+      
 
-      // Print target temperature
-      it.printf(170, 30, id(font2), TextAlign::TOP_RIGHT , "%.1f°", id(target_temperature).state);
+      if(id(mode) == 0 || id(mode) == 1){
+        // Print inside temperature (from homeassistant sensor)
+        it.image(5, 145, id(img_home));
 
-      // Print inside temperature (from homeassistant sensor)
-      it.image(0, 155, id(img_home));
-      if (id(inside_temperature).has_state()) {
-        it.printf(35, 140, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(inside_temperature).state);
+        if (id(inside_temperature).has_state()) {
+          it.printf(90, 130, id(font3), TextAlign::TOP_RIGHT  , "%.1f°", id(inside_temperature).state);
 
-        if (id(inside_humidity).has_state()) {
-          it.printf(35, 170, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(inside_humidity).state);
+          if (id(inside_humidity).has_state()) {
+            it.printf(90, 160, id(font3), TextAlign::TOP_RIGHT  , "%.0f%%", id(inside_humidity).state);
+          }
         }
       }
 
-      // Print outside temperature (from homeassistant sensor)
-      it.image(100, 155, id(img_sunny));
+      // mode == show heating temperature
+      if(id(mode) == 0){
+        // Print target temperature
+        it.printf(170, 10, id(font2), TextAlign::TOP_RIGHT , "%.1f°", id(target_temperature).state);
 
-      if (id(outside_temperature).has_state()) {
-        it.printf(135, 140, id(font3), TextAlign::TOP_LEFT  , "%.1f°", id(outside_temperature).state);
-        if (id(outside_humidity).has_state()) {
-          it.printf(135, 170, id(font3), TextAlign::TOP_LEFT  , "%.0f%%", id(outside_humidity).state);
+        // Print outside temperature (from homeassistant sensor)
+        it.image(105, 145, id(img_sunny));
+
+        if (id(outside_temperature).has_state()) {
+          it.printf(190, 130, id(font3), TextAlign::TOP_RIGHT  , "%.1f°", id(outside_temperature).state);
+          if (id(outside_humidity).has_state()) {
+            it.printf(190, 160, id(font3), TextAlign::TOP_RIGHT  , "%.0f%%", id(outside_humidity).state);
+          }
+        }
+      } else if (id(mode) == 1){ // show outdoor temperature
+        if (id(outside_temperature).has_state()) {
+          it.printf(170, 10, id(font2), TextAlign::TOP_RIGHT , "%.1f°", id(outside_temperature).state);
+        }
+
+        // Print heating temperature on right side
+        it.image(105, 145, id(img_radiator_disabled));
+        it.printf(190, 130, id(font3), TextAlign::TOP_RIGHT  , "%.1f°", id(target_temperature).state);
+        
+      }
+      else if(id(mode) == 2){
+        if (id(inside_temperature).has_state()) {
+          it.printf(170, 10, id(font2), TextAlign::TOP_RIGHT , "%.1f°", id(inside_temperature).state);
+        }
+
+        // Print heating temperature on left side
+        it.image(5, 145, id(img_radiator_disabled));
+
+        if (id(target_temperature).has_state()) {
+          it.printf(90, 130, id(font3), TextAlign::TOP_RIGHT  , "%.1f°", id(target_temperature).state);
+        }
+
+        // Print outside temperature on right side
+        it.image(105, 145, id(img_sunny));
+
+        if (id(outside_temperature).has_state()) {
+          it.printf(190, 130, id(font3), TextAlign::TOP_RIGHT  , "%.1f°", id(outside_temperature).state);
+          if (id(outside_humidity).has_state()) {
+            it.printf(190, 160, id(font3), TextAlign::TOP_RIGHT  , "%.0f%%", id(outside_humidity).state);
+          }
         }
       }
     

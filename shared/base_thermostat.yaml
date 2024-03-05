@@ -1,5 +1,4 @@
 substitutions:
-  DISPLAY_HEADLINE: ""
   DISPLAY_ROTATION: "90"
   SPI_CLK_PIN: GPIO32
   SPI_MOSI_PIN: GPIO22
@@ -24,6 +23,11 @@ external_components:
       ref: test_23_7
     components: [ waveshare_epaper, display]
 
+globals:
+  - id: mode # which temperature is displayed?
+    type: int
+    restore_value: true
+    initial_value: '0' # 0: heating 1: outdoor 2: indoor
 
 sensor:
   - platform: homeassistant
@@ -129,23 +133,31 @@ binary_sensor:
       - invert:      
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_press:
-      then:
-        - if:
-            condition:
-              binary_sensor.is_on: heating
-            then: 
-              - homeassistant.service: 
-                  service: climate.turn_off
-                  data:
-                    entity_id: ${climate_entity_id}
-            else:
-              - homeassistant.service: 
-                  service: climate.turn_on
-                  data:
-                    entity_id: ${climate_entity_id}
-
-    
+    on_click:
+      - min_length: 100ms
+        max_length: 1000ms
+        then:
+          - if:
+              condition:
+                binary_sensor.is_on: heating
+              then: 
+                - homeassistant.service: 
+                    service: climate.turn_off
+                    data:
+                      entity_id: ${climate_entity_id}
+              else:
+                - homeassistant.service: 
+                    service: climate.turn_on
+                    data:
+                      entity_id: ${climate_entity_id}
+      - min_length: 1000ms
+        max_length: 5000ms
+        then:
+          - globals.set:
+              id: mode
+              value: !lambda 'return (id(mode) + 1) % 3;'
+          - component.update: my_display
+      
 text_sensor:
   # Current heating mode
   - platform: homeassistant

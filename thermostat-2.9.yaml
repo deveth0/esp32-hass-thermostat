@@ -1,9 +1,9 @@
+# Thermostat with 2.9 inch display, buttons on left side
 esphome:
   name: esp32-thermostat-29
 
 substitutions:
   LOG_LEVEL: DEBUG
-  DISPLAY_HEADLINE: Wohnzimmer
   climate_entity_id: climate.heizung_wohnzimmer
   indoor_temp_entity_id: sensor.temperatur_wohnzimmer_s1_temperature
   indoor_humidity_entity_id: sensor.temperatur_wohnzimmer_s1_humidity
